@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime, timedelta
 
 
+content_frame = None
 db = sqlite3.connect("billing.db")
 cur = db.cursor()
 
@@ -45,7 +46,7 @@ current_role = ""
 root = tk.Tk()
 root.title("Billing Management System")
 root.geometry("1100x700")
-root.configure(bg="#eaf0f6")
+
 
 
 def login():
@@ -76,18 +77,37 @@ def clear_entries(entries):
     for entry in entries:
         entry.delete(0, tk.END)
 
+def clear_content():
+    global content_frame
+
+    if content_frame is None:
+        return
+
+    for widget in content_frame.winfo_children():
+        widget.destroy()
+
+def add_back_button():
+    tk.Button(
+        content_frame,
+        text="<< Back",
+        command=content_frame.destroy,
+        width=12
+    ).pack(anchor="w", padx=10, pady=10)
+
 
 
 def product_screen():
-    win = tk.Toplevel(root)
-    win.title("Product Management")
-    win.geometry("800x550")
+    clear_content()
+    
 
-    tk.Label(win, text="PRODUCT MANAGEMENT",
-             font=("Arial", 18, "bold")).pack(pady=10)
+    tk.Label(
+        content_frame,
+        text="PRODUCT MANAGEMENT",
+        font=("Arial", 18, "bold")
+    ).pack(pady=10)
 
-    frame = tk.Frame(win)
-    frame.pack(pady=10)
+    frame = tk.Frame(content_frame)
+    frame.pack(pady=10)      
 
     labels = ["Product Name", "Category", "Price", "Stock"]
     entries = []
@@ -100,7 +120,7 @@ def product_screen():
 
     name, category, price, stock = entries
 
-    tree = ttk.Treeview(win,
+    tree = ttk.Treeview(content_frame,
         columns=("ID", "Name", "Category", "Price", "Stock"),
         show="headings")
 
@@ -185,7 +205,7 @@ def product_screen():
 
     tree.bind("<<TreeviewSelect>>", select_product)
 
-    buttons = tk.Frame(win)
+    buttons = tk.Frame(content_frame)
     buttons.pack(pady=10)
 
     tk.Button(buttons, text="Add Product",
@@ -200,14 +220,13 @@ def product_screen():
 
 
 def customer_screen():
-    win = tk.Toplevel(root)
-    win.title("Customer Management")
-    win.geometry("700x500")
+    clear_content()
+    
 
-    tk.Label(win, text="CUSTOMER MANAGEMENT",
+    tk.Label(content_frame, text="CUSTOMER MANAGEMENT",
              font=("Arial", 18, "bold")).pack(pady=15)
 
-    frame = tk.Frame(win)
+    frame = tk.Frame(content_frame)
     frame.pack()
 
     tk.Label(frame, text="Customer Name").grid(row=0, column=0, padx=10, pady=10)
@@ -218,7 +237,7 @@ def customer_screen():
     phone = tk.Entry(frame, width=30)
     phone.grid(row=1, column=1)
 
-    tree = ttk.Treeview(win, columns=("ID", "Name", "Phone"),
+    tree = ttk.Treeview(content_frame, columns=("ID", "Name", "Phone"),
                         show="headings")
     for col in ("ID", "Name", "Phone"):
         tree.heading(col, text=col)
@@ -255,22 +274,21 @@ def customer_screen():
             db.commit()
             refresh()
 
-    tk.Button(win, text="Add Customer", command=add).pack(side="left", padx=150)
-    tk.Button(win, text="Delete Customer", command=delete).pack(side="left")
+    tk.Button(content_frame, text="Add Customer", command=add).pack(side="left", padx=150)
+    tk.Button(content_frame, text="Delete Customer", command=delete).pack(side="left")
 
     refresh()
 
 
 
 def user_screen():
-    win = tk.Toplevel(root)
-    win.title("Employee Management")
-    win.geometry("650x450")
+    clear_content()
+    
 
-    tk.Label(win, text="EMPLOYEE MANAGEMENT",
+    tk.Label(content_frame, text="EMPLOYEE MANAGEMENT",
              font=("Arial", 18, "bold")).pack(pady=15)
 
-    frame = tk.Frame(win)
+    frame = tk.Frame(content_frame)
     frame.pack()
 
     tk.Label(frame, text="Username").grid(row=0, column=0, pady=8)
@@ -286,7 +304,7 @@ def user_screen():
     role.set("Staff")
     role.grid(row=2, column=1)
 
-    tree = ttk.Treeview(win, columns=("Username", "Role"),
+    tree = ttk.Treeview(content_frame, columns=("Username", "Role"),
                         show="headings")
     tree.heading("Username", text="Username")
     tree.heading("Role", text="Role")
@@ -333,22 +351,22 @@ def user_screen():
             db.commit()
             refresh()
 
-    tk.Button(win, text="Add Employee", command=add).pack(side="left", padx=160)
-    tk.Button(win, text="Delete Employee", command=delete).pack(side="left")
+    tk.Button(content_frame, text="Add Employee", command=add).pack(side="left", padx=160)
+    tk.Button(content_frame, text="Delete Employee", command=delete).pack(side="left")
 
     refresh()
 
 
 
 def billing_screen():
-    win = tk.Toplevel(root)
-    win.title("Create New Bill")
-    win.geometry("1000x700")
+    clear_content()
+    
+    
 
-    tk.Label(win, text="BILL GENERATION",
+    tk.Label(content_frame, text="BILL GENERATION",
              font=("Arial", 20, "bold")).pack(pady=10)
 
-    top = tk.Frame(win)
+    top = tk.Frame(content_frame)
     top.pack(pady=5)
 
     tk.Label(top, text="Customer Name").grid(row=0, column=0, padx=5)
@@ -362,7 +380,7 @@ def billing_screen():
     phone = tk.Entry(top, width=18)
     phone.grid(row=0, column=3, padx=5)
 
-    product_frame = tk.Frame(win)
+    product_frame = tk.Frame(content_frame)
     product_frame.pack(pady=15)
 
     tk.Label(product_frame, text="Product").grid(row=0, column=0)
@@ -377,7 +395,7 @@ def billing_screen():
         cur.execute("SELECT name FROM products WHERE stock>0")
         product["values"] = [r[0] for r in cur.fetchall()]
 
-    tree = ttk.Treeview(win,
+    tree = ttk.Treeview(content_frame,
         columns=("Product", "Price", "Quantity", "Amount"),
         show="headings")
 
@@ -449,10 +467,10 @@ def billing_screen():
     tk.Button(product_frame, text="Add to Bill",
               command=add_to_cart).grid(row=0, column=4, padx=10)
 
-    tk.Button(win, text="Remove Selected Product",
+    tk.Button(content_frame, text="Remove Selected Product",
               command=remove_item).pack(pady=5)
 
-    bottom = tk.Frame(win)
+    bottom = tk.Frame(content_frame)
     bottom.pack(pady=15)
 
     tk.Label(bottom, text="Subtotal:").grid(row=0, column=0, padx=10)
@@ -608,8 +626,7 @@ Payment        : {payment.get()}
         phone.delete(0, tk.END)
         total_var.set("0.00")
 
-    tk.Button(win, text="SAVE BILL / GENERATE INVOICE",
-              bg="green", fg="white",
+    tk.Button(content_frame, text="SAVE BILL / GENERATE INVOICE",
               font=("Arial", 12, "bold"),
               command=save_bill).pack(pady=15)
 
@@ -618,14 +635,13 @@ Payment        : {payment.get()}
 
 
 def history_screen():
-    win = tk.Toplevel(root)
-    win.title("Sales History")
-    win.geometry("950x550")
+    clear_content()
+    
 
-    tk.Label(win, text="SALES TRANSACTION HISTORY",
+    tk.Label(content_frame, text="SALES TRANSACTION HISTORY",
              font=("Arial", 18, "bold")).pack(pady=15)
 
-    tree = ttk.Treeview(win,
+    tree = ttk.Treeview(content_frame,
         columns=("ID", "Customer", "Subtotal", "Discount",
                  "Tax", "Total", "Payment", "Date", "Status"),
         show="headings")
@@ -679,7 +695,7 @@ def history_screen():
                 db.rollback()
                 messagebox.showerror("Error", str(e))
 
-    tk.Button(win, text="Cancel Transaction",
+    tk.Button(content_frame, text="Cancel Transaction",
               command=cancel_sale).pack(pady=10)
 
     refresh()
@@ -687,14 +703,13 @@ def history_screen():
 
 
 def report_screen():
-    win = tk.Toplevel(root)
-    win.title("Sales Reports")
-    win.geometry("600x450")
+    clear_content()
+   
 
-    tk.Label(win, text="SALES REPORTS",
+    tk.Label(content_frame, text="SALES REPORTS",
              font=("Arial", 20, "bold")).pack(pady=20)
 
-    result = tk.Label(win, text="", font=("Arial", 14),
+    result = tk.Label(content_frame, text="", font=("Arial", 14),
                       justify="left")
     result.pack(pady=20)
 
@@ -724,7 +739,7 @@ def report_screen():
         Total Revenue: Rs. {total:.2f}
         """)
 
-    buttons = tk.Frame(win)
+    buttons = tk.Frame(content_frame)
     buttons.pack()
 
     for period in ("Daily", "Weekly", "Monthly"):
@@ -735,68 +750,89 @@ def report_screen():
 
 
 def main_screen():
+    global content_frame
+
     root.title("Billing Management System - Dashboard")
 
-    tk.Label(root, text="BILLING MANAGEMENT SYSTEM",
-             font=("Arial", 25, "bold"),
-             bg="#1c3557", fg="white",
-             pady=20).pack(fill="x")
+    tk.Label(
+        root,
+        text="BILLING MANAGEMENT SYSTEM",
+        font=("Arial", 22, "bold")
+    ).pack(fill="x", pady=10)
 
-    tk.Label(root, text=f"Welcome {current_user} ({current_role})",
-             font=("Arial", 13),
-             bg="#eaf0f6").pack(pady=15)
+    tk.Label(
+        root,
+        text=f"Welcome {current_user} ({current_role})",
+        font=("Arial", 12)
+    ).pack()
 
-    frame = tk.Frame(root, bg="#eaf0f6")
-    frame.pack(pady=30)
+    main_frame = tk.Frame(root)
+    main_frame.pack(fill="both", expand=True)
 
-    def make_button(text, command, row, col):
-        tk.Button(frame, text=text, command=command,
-                  width=25, height=3,
-                  font=("Arial", 11, "bold"),
-                  bg="#28527a", fg="white",
-                  cursor="hand2").grid(row=row, column=col,
-                                      padx=15, pady=15)
+    menu_frame = tk.Frame(main_frame, bg="lightgray", width=220)
+    menu_frame.pack(side="left", fill="y")
+
+    content_frame = tk.Frame(main_frame)
+    content_frame.pack(side="right", fill="both", expand=True)
+
+    def make_btn(text, command):
+        tk.Button(
+            menu_frame,
+            text=text,
+            width=22,
+            height=2,
+            command=command
+        ).pack(pady=5)
 
     if current_role == "Admin":
-        make_button("Product Management", product_screen, 0, 0)
-        make_button("Customer Management", customer_screen, 0, 1)
-        make_button("Employee Management", user_screen, 1, 0)
-        make_button("Sales Reports", report_screen, 1, 1)
+        make_btn("Product Management", product_screen)
+        make_btn("Customer Management", customer_screen)
+        make_btn("Employee Management", user_screen)
+        make_btn("Sales Reports", report_screen)
 
-    make_button("Create New Bill", billing_screen, 2, 0)
-    make_button("Sales History", history_screen, 2, 1)
-    make_button("Logout", logout, 3, 0)
+    make_btn("Create Bill", billing_screen)
+    make_btn("Sales History", history_screen)
+    make_btn("Logout", logout)
 
-
-
-login_frame = tk.Frame(root, bg="#eaf0f6")
+login_frame = tk.Frame(root)
 login_frame.pack(expand=True)
 
-tk.Label(login_frame, text="BILLING SYSTEM",
-         font=("Arial", 25, "bold"),
-         bg="#eaf0f6", fg="#1c3557").pack(pady=20)
+tk.Label(
+    login_frame,
+    text="BILLING MANAGEMENT SYSTEM",
+    font=("Arial", 25, "bold")
+).pack(pady=20)
 
-tk.Label(login_frame, text="Username",
-         font=("Arial", 12), bg="#eaf0f6").pack()
+tk.Label(login_frame, text="Username").pack()
 
-user_entry = tk.Entry(login_frame, width=30,
-                      font=("Arial", 12))
-user_entry.pack(pady=8)
+user_entry = tk.Entry(
+    login_frame,
+    width=30,
+    font=("Arial", 12)
+)
+user_entry.pack(pady=5)
 
-tk.Label(login_frame, text="Password",
-         font=("Arial", 12), bg="#eaf0f6").pack()
+tk.Label(login_frame, text="Password").pack()
 
-pass_entry = tk.Entry(login_frame, width=30,
-                      show="*", font=("Arial", 12))
-pass_entry.pack(pady=8)
+pass_entry = tk.Entry(
+    login_frame,
+    width=30,
+    show="*",
+    font=("Arial", 12)
+)
+pass_entry.pack(pady=5)
 
-tk.Button(login_frame, text="LOGIN",
-          command=login, width=20, height=2,
-          bg="#28527a", fg="white",
-          font=("Arial", 12, "bold")).pack(pady=20)
+tk.Button(
+    login_frame,
+    text="LOGIN",
+    command=login,
+    width=20,
+    height=2
+).pack(pady=15)
 
-tk.Label(login_frame,
-         text="Admin Username: admin\nAdmin Password: admin123",
-         bg="#eaf0f6", fg="gray").pack(pady=10)
+tk.Label(
+    login_frame,
+    text="Admin Username: admin\nAdmin Password: admin123"
+).pack(pady=10)
 
 root.mainloop()
